@@ -1,6 +1,7 @@
 import { type Serve } from 'bun'
-import { renderToReadableStream } from 'react-dom/server'
 import { resolve } from 'node:path'
+import React from 'react'
+import { renderToReadableStream } from 'react-dom/server'
 import { App } from './src/app'
 
 const router = new Bun.FileSystemRouter({
@@ -20,13 +21,9 @@ export default {
     const route = router.match(request)
     if (!route) return new Response('Not found', { status: 404 }) // no route matched
     const { default: Root } = await import(route.filePath)
-    return new Response(
-      await renderToReadableStream(
-        <App>
-          <Root {...route.params} />
-        </App>,
-      ),
-      { headers: { 'content-type': 'text/html' } },
+    const stream = await renderToReadableStream(
+      React.createElement(App, { children: React.createElement(Root, route.params) }),
     )
+    return new Response(stream, { headers: { 'content-type': 'text/html' } })
   },
 } satisfies Serve
