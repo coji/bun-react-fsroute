@@ -1,6 +1,6 @@
 import { Database } from 'bun:sqlite'
 
-export const useDatabase = () => {
-  const db = new Database('./db.sqlite')
+export const createDatabase = () => {
+  const db = new Database('./data/app.db')
   return { db }
 }

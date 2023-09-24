@@ -20,9 +20,29 @@ export default {
     // Serve dynamic pages
     const route = router.match(request)
     if (!route) return new Response('Not found', { status: 404 }) // no route matched
-    const { default: Root } = await import(route.filePath)
+    const { default: Root, loader, action } = await import(route.filePath)
+
+    // Run action
+    let actionData = {}
+    if (action && request.method === 'POST') {
+      actionData = { ...(await action({ request, params: route.params })) }
+    }
+
+    // Run loader
+    let loaderData = {}
+    if (loader) {
+      loaderData = { ...(await loader({ request, params: route.params })) }
+    }
+
+    // Render page with loader data
     const stream = await renderToReadableStream(
-      React.createElement(App, { children: React.createElement(Root, route.params) }),
+      React.createElement(App, {
+        children: React.createElement(Root, {
+          ...route.params,
+          actionData,
+          loaderData,
+        }),
+      }),
     )
     return new Response(stream, { headers: { 'content-type': 'text/html' } })
   },
