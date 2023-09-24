@@ -23,15 +23,15 @@ export default {
     const { default: Root, loader, action } = await import(route.filePath)
 
     // Run action
-    let actionData = {}
+    let actionData = null
     if (action && request.method === 'POST') {
-      actionData = { ...(await action({ request, params: route.params })) }
+      actionData = await action({ request, params: route.params })
     }
 
     // Run loader
-    let loaderData = {}
+    let loaderData = null
     if (loader) {
-      loaderData = { ...(await loader({ request, params: route.params })) }
+      loaderData = await loader({ request, params: route.params })
     }
 
     // Render page with loader data
